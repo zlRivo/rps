@@ -23,7 +23,7 @@ struct Arguments {
 }
 
 impl Arguments {
-    fn parse(args: &[&str]) -> Result<Self, ()> {
+    fn parse(args: &[String]) -> Result<Self, ()> {
         if args.len() < 3 { return Err(()); }
         
         enum ParseState {
@@ -43,22 +43,20 @@ impl Arguments {
         for arg in args.iter().skip(1) {
             match state {
                 ParseState::Mode => {
-                    match *arg {
+                    match arg.as_str() {
                         "host" => { output.mode = ConnectionMode::Hosting; state = ParseState::Choice; },
                         "join" => { output.mode = ConnectionMode::Joining; state = ParseState::IP; }
                         _ => { return Err(()); }
                     }
                 },
                 ParseState::IP => {
-                    let res: Result<Ipv4Addr, _> = (*arg).parse();
-                    if res.is_err() { return Err(()); }
                     output.ip = (*arg).to_string();
                     state = ParseState::Choice;
                 },
                 ParseState::Choice => {
-                    match *arg {
+                    match arg.as_str() {
                         "rock" | "paper" | "scissors" => {
-                            output.choice = match *arg {
+                            output.choice = match arg.as_str() {
                                 "rock" => { PlayerChoice::Rock },
                                 "paper" => { PlayerChoice::Paper },
                                 "scissors" => { PlayerChoice::Scissors },
@@ -120,7 +118,7 @@ fn play_animation() {
 }
 
 fn main() -> () {
-    let args_list: Vec<&str> = env::args().map(|a| a.as_str()).collect();
+    let args_list: Vec<String> = env::args().collect();
     let args = Arguments::parse(&args_list);
     if args.is_err() { print_usage(); return; }
     let args = args.unwrap();
